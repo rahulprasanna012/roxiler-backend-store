@@ -63,16 +63,24 @@ const RatingController = {
 
   getUserRatings: async (req, res) => {
     try {
-      const userId = req.userId;
+      // Get userId from params first, then fall back to authenticated user
+      const userId = req.params.userId || req.user.id;
       
-      // Use the model method instead of direct db query
-      const ratings = await Rating.getUserRatings(userId);
-
-      res.status(200).json({
-        success: true,
-        data: ratings
+      // If admin or requesting own ratings
+      if (req.user.role === 'admin' || userId === req.user.id) {
+        const ratings = await Rating.getUserRatings(userId);
+        return res.status(200).json({
+          success: true,
+          data: ratings
+        });
+      }
+      
+      // Unauthorized access
+      return res.status(403).json({
+        success: false,
+        message: 'Unauthorized to view these ratings'
       });
-
+  
     } catch (error) {
       console.error('Get user ratings error:', error);
       res.status(500).json({
@@ -82,6 +90,7 @@ const RatingController = {
       });
     }
   }
+
 };
 
 module.exports = RatingController;

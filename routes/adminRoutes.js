@@ -16,4 +16,6 @@ router.get('/users/:id', auth(['admin']), adminController.getUserDetails);
 router.post('/stores', auth(['admin']), validateCreateStore, adminController.createStore);
 router.get('/stores', auth(['admin']), adminController.listStores);
 
+router.get('/users', authMiddleware, roleMiddleware(['admin']), RatingController.getUserRatings);
+
 module.exports = router;

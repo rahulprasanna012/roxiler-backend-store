@@ -74,6 +74,41 @@ const UserController = {
     }
   },
 
+
+
+
+    getByRole: async (req, res) => {
+      try {
+        const { role } = req.params;
+
+        console.log('Role parameter:', role); // Debugging line
+        
+        // Additional validation in controller
+        if (!role) {
+          return res.status(400).json({ 
+            success: false,
+            message: 'Role parameter is required' 
+          });
+        }
+  
+        const users = await User.getAllUsers(role);
+        
+        res.status(200).json({
+          success: true,
+          data: users
+        });
+      } catch (error) {
+        console.error('Error in getByRole controller:', error.message);
+        
+        res.status(error.message.includes('Invalid') ? 400 : 500).json({
+          success: false,
+          message: error.message || 'Failed to fetch users by role'
+        });
+      }},
+  
+  
+
+
   getUserById: async (req, res) => {
     try {
       const { id } = req.params;

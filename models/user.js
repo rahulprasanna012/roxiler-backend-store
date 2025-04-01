@@ -27,6 +27,20 @@ const User = {
     return rows[0];
   },
 
+
+  findByRole: async (role) => {
+    try {
+      const { rows } = await db.query(
+        'SELECT id, name, email FROM users WHERE role = $1',
+        [role]
+      );
+      return rows;
+    } catch (error) {
+      console.error('Error finding users by role:', error);
+      throw error;
+    }
+  },
+
   getAllUsers: async (filters = {}) => {
     let query = 'SELECT * FROM users WHERE 1=1';
     const params = [];

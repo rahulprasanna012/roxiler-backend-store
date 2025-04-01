@@ -8,5 +8,6 @@ router.get('/', authMiddleware, roleMiddleware(['admin']), UserController.getAll
 router.get('/dashboard', authMiddleware, roleMiddleware(['admin']), UserController.getAdminDashboard);
 router.post('/', authMiddleware, roleMiddleware(['admin']), UserController.createUser);
 router.get('/:id', authMiddleware, roleMiddleware(['admin']), UserController.getUserById);
+router.get('/role/:role', UserController.getByRole);
 
 module.exports = router;

@@ -90,27 +90,27 @@ class AdminController {
     }
 
     // Listings with Filters
-    async listUsers(req, res, next) {
-        try {
-            const { name, email, address, role, sortBy = 'name', sortOrder = 'ASC' } = req.query;
+    // async listUsers(req, res, next) {
+    //     try {
+    //         const { name, email, address, role, sortBy = 'name', sortOrder = 'ASC' } = req.query;
             
-            const where = {};
-            if (name) where.name = { [Op.iLike]: `%${name}%` };
-            if (email) where.email = { [Op.iLike]: `%${email}%` };
-            if (address) where.address = { [Op.iLike]: `%${address}%` };
-            if (role) where.role = role;
+    //         const where = {};
+    //         if (name) where.name = { [Op.iLike]: `%${name}%` };
+    //         if (email) where.email = { [Op.iLike]: `%${email}%` };
+    //         if (address) where.address = { [Op.iLike]: `%${address}%` };
+    //         if (role) where.role = role;
 
-            const users = await User.findAll({
-                where,
-                order: [[sortBy, sortOrder]],
-                attributes: ['id', 'name', 'email', 'address', 'role', 'createdAt']
-            });
+    //         const users = await User.findAll({
+    //             where,
+    //             order: [[sortBy, sortOrder]],
+    //             attributes: ['id', 'name', 'email', 'address', 'role', 'createdAt']
+    //         });
 
-            return new ApiResponse(res).success(200, { users }, 'Users retrieved successfully');
-        } catch (error) {
-            next(error);
-        }
-    }
+    //         return new ApiResponse(res).success(200, { users }, 'Users retrieved successfully');
+    //     } catch (error) {
+    //         next(error);
+    //     }
+    // }
 
     async listStores(req, res, next) {
         try {

@@ -1,3 +1,4 @@
+
 Store Rating API - Postman Test Collection
 Overview
 This Postman collection provides complete testing for a Store Rating system with three user roles: System Administrator, Normal User, and Store Owner. The collection includes all necessary requests to test the full functionality of each role.

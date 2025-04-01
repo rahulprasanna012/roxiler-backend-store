@@ -12,10 +12,12 @@ const Store = {
   getAllStores: async (filters = {}) => {
     let query = `
       SELECT s.*, 
+             u.name as owner_name,
              COALESCE(AVG(r.rating), 0) as average_rating,
              COUNT(r.id) as rating_count
       FROM stores s
       LEFT JOIN ratings r ON s.id = r.store_id
+      LEFT JOIN users u ON s.owner_id = u.id
       WHERE 1=1
     `;
     
@@ -34,12 +36,20 @@ const Store = {
       paramCount++;
     }
 
-    query += ' GROUP BY s.id';
+    if (filters.ownerName) {
+      query += ` AND u.name ILIKE $${paramCount}`;
+      params.push(`%${filters.ownerName}%`);
+      paramCount++;
+    }
+
+    query += ' GROUP BY s.id, u.name';
 
     if (filters.sortBy) {
       const sortOrder = filters.sortOrder === 'desc' ? 'DESC' : 'ASC';
       if (filters.sortBy === 'average_rating') {
         query += ` ORDER BY average_rating ${sortOrder}`;
+      } else if (filters.sortBy === 'owner_name') {
+        query += ` ORDER BY u.name ${sortOrder}`;
       } else {
         query += ` ORDER BY s.${filters.sortBy} ${sortOrder}`;
       }
@@ -52,12 +62,14 @@ const Store = {
   getStoreById: async (id) => {
     const { rows } = await db.query(
       `SELECT s.*, 
+              u.name as owner_name,
               COALESCE(AVG(r.rating), 0) as average_rating,
               COUNT(r.id) as rating_count
        FROM stores s
        LEFT JOIN ratings r ON s.id = r.store_id
+       LEFT JOIN users u ON s.owner_id = u.id
        WHERE s.id = $1
-       GROUP BY s.id`,
+       GROUP BY s.id, u.name`,
       [id]
     );
     return rows[0];
@@ -66,12 +78,14 @@ const Store = {
   getStoresByOwner: async (ownerId) => {
     const { rows } = await db.query(
       `SELECT s.*, 
+              u.name as owner_name,
               COALESCE(AVG(r.rating), 0) as average_rating,
               COUNT(r.id) as rating_count
        FROM stores s
        LEFT JOIN ratings r ON s.id = r.store_id
+       LEFT JOIN users u ON s.owner_id = u.id
        WHERE s.owner_id = $1
-       GROUP BY s.id`,
+       GROUP BY s.id, u.name`,
       [ownerId]
     );
     return rows;

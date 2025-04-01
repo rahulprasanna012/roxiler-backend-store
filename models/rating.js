@@ -66,7 +66,11 @@ const Rating = {
          WHERE r.user_id = $1`,
         [user_id]
       );
-      return rows;
+      return { 
+        success: true,
+        data: rows,
+        count: rows.length
+      };
     } catch (error) {
       console.error('Error in getUserRatings:', error);
       throw error;
