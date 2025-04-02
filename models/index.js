@@ -1,6 +1,6 @@
 const User = require('./user');
-const Store = require('./Store');
-const Rating = require('./Rating');
+const Store = require('./store');
+const Rating = require('./rating');
 
 module.exports = {
   User,
