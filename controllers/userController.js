@@ -111,7 +111,8 @@ const UserController = {
 
   getUserById: async (req, res) => {
     try {
-      const { id } = req.params;
+      const { userId } = req.params;
+      console.log(id)
       
       const user = await User.findById(id);
       if (!user) {

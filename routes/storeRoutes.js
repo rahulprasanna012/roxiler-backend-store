@@ -7,6 +7,6 @@ const roleMiddleware = require('../middleware/roleMiddleware');
 router.get('/', authMiddleware, StoreController.getAllStores);
 router.get('/:id', authMiddleware, StoreController.getStoreById);
 router.post('/', authMiddleware, roleMiddleware(['admin']), StoreController.createStore);
-router.get('/owner/dashboard', authMiddleware, roleMiddleware(['store_owner']), StoreController.getOwnerDashboard);
+router.get('/:ownerId/dashboard', authMiddleware, roleMiddleware(['store_owner']), StoreController.getOwnerDashboard);
 
 module.exports = router;

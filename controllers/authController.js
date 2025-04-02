@@ -62,7 +62,7 @@ const AuthController = {
       const token = jwt.sign(
         { userId: user.id, role: user.role },
         JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: '10h' }
       );
 
       res.json({ 
@@ -83,15 +83,19 @@ const AuthController = {
 
   changePassword: async (req, res) => {
     try {
-      const { currentPassword, newPassword } = req.body;
-      const userId = req.userId;
+      const { userId,oldPassword, newPassword } = req.body;
+
+      
+     
 
       const user = await User.findById(userId);
+
+      
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
 
-      const isMatch = await bcrypt.compare(currentPassword, user.password);
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
       if (!isMatch) {
         return res.status(401).json({ message: 'Current password is incorrect' });
       }

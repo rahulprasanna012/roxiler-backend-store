@@ -6,23 +6,40 @@ const config = require('../config/config');
 
 class AdminController {
     // Dashboard Statistics
-    async getDashboardStats(req, res, next) {
+    async getAdminDashboard(req, res){
         try {
-            const [users, stores, ratings] = await Promise.all([
-                User.count(),
-                Store.count(),
-                Rating.count()
-            ]);
-
-            return new ApiResponse(res).success(200, {
-                totalUsers: users,
-                totalStores: stores,
-                totalRatings: ratings
-            }, 'Dashboard stats retrieved successfully');
+          const [userCount, storeCount, ratingCount] = await Promise.all([
+            User.countUsers(),
+            Store.countStores(),
+            Rating.countRatings()
+          ]);
+      
+          res.json({
+            success: true,
+            data: {
+              userCount,
+              storeCount,
+              ratingCount
+            }
+          });
         } catch (error) {
-            next(error);
+          console.error('Dashboard error:', error);
+          
+          let statusCode = 500;
+          let message = 'Error fetching dashboard data';
+          
+          if (error.code === 'ETIMEDOUT') {
+            statusCode = 503;
+            message = 'Database service unavailable';
+          }
+          
+          res.status(statusCode).json({ 
+            success: false,
+            message,
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+          });
         }
-    }
+      }
 
     // User Management
     async createUser(req, res, next) {
@@ -67,6 +84,8 @@ class AdminController {
     async createStore(req, res, next) {
         try {
             const { name, email, address, ownerId } = req.body;
+
+            console.log('tiggerd')
 
             const owner = await User.findByPk(ownerId);
             if (!owner) {

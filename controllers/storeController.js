@@ -83,33 +83,65 @@ const StoreController = {
   },
 
   getOwnerDashboard: async (req, res) => {
+
+    
     try {
-      const ownerId = req.userId;
+      
+        const {ownerId}=req.params
+
+
+      
+      
       
       const stores = await Store.getStoresByOwner(ownerId);
+
       
-      const storesWithRatings = await Promise.all(stores.map(async (store) => {
+      // Enhance each store with ratings and statistics
+      const storesWithStats = await Promise.all(stores.map(async (store) => {
+        // Get all ratings for this store
         const ratings = await Rating.getRatingsForStore(store.id);
+        
+        // Calculate average rating
+        const averageRating = ratings.length > 0 
+          ? (ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length): 0;
+        
+        // Format rating users data
+        const ratingUsers = ratings.map(r => ({
+          id: r.user_id,
+          name: r.user_name,
+          email: r.user_email,
+          rating: r.rating,
+          comment: r.comment || null, // assuming comments might exist
+          rated_at: r.created_at
+        }));
+        
         return {
-          ...store,
-          ratings: ratings.map(r => ({
-            id: r.id,
-            rating: r.rating,
-            user: {
-              id: r.user_id,
-              name: r.user_name,
-              email: r.user_email,
-              address: r.user_address
-            },
-            created_at: r.created_at
-          }))
+          id: store.id,
+          name: store.name,
+          email: store.email,
+          address: store.address,
+          total_ratings: ratings.length,
+          average_rating: parseFloat(averageRating.toFixed(2)), // round to 2 decimal places
+          rating_users: ratingUsers,
+          created_at: store.created_at,
+          updated_at: store.updated_at
         };
       }));
 
-      res.json(storesWithRatings);
+      res.json({
+        success: true,
+        data: {
+          total_stores: storesWithStats.length,
+          stores: storesWithStats
+        }
+      });
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error fetching owner dashboard' });
+      console.error('Error in getOwnerDashboard:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Error fetching owner dashboard',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   },
 };
