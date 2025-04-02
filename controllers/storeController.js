@@ -31,27 +31,35 @@ const StoreController = {
       if (address) filters.address = address;
       if (sortBy) filters.sortBy = sortBy;
       if (sortOrder) filters.sortOrder = sortOrder;
-
+  
       let stores = await Store.getAllStores(filters);
-
-      if (req.role === 'user') {
-        const userId = req.userId;
+  
+      // Add user rating if authenticated user
+      if (req.user && req.user.role === 'user') {
+        const userId = req.user.id;
         stores = await Promise.all(stores.map(async (store) => {
-          const userRating = await Rating.getUserRatingForStore(userId, store.id);
-          return {
-            ...store,
-            user_rating: userRating ? userRating.rating : null
-          };
+          try {
+            const userRating = await Rating.getUserRatingForStore(userId, store.id);
+            return {
+              ...store,
+              user_rating: userRating ? userRating.rating : null
+            };
+          } catch (error) {
+            console.error(`Error fetching rating for store ${store.id}:`, error);
+            return store; // Return store without rating if error occurs
+          }
         }));
       }
-
+  
       res.json(stores);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Error fetching stores' });
+      console.error('Error in getAllStores:', error);
+      res.status(500).json({ 
+        message: 'Error fetching stores',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
     }
   },
-
   getStoreById: async (req, res) => {
     try {
       const { id } = req.params;

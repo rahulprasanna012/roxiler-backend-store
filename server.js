@@ -1,10 +1,13 @@
-require('dotenv').config(); // Add this FIRST
+require('dotenv').config();
 const app = require('./app');
 const { PORT = 5000 } = process.env;
 const { query } = require('./config/db');
 
 const initializeDatabase = async () => {
   try {
+    // Enable UUID extension if needed
+    await query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+
     await query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -24,7 +27,7 @@ const initializeDatabase = async () => {
         name VARCHAR(100) NOT NULL,
         email VARCHAR(255),
         address VARCHAR(400),
-        owner_id INTEGER REFERENCES users(id),
+        owner_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -33,14 +36,20 @@ const initializeDatabase = async () => {
     await query(`
       CREATE TABLE IF NOT EXISTS ratings (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id),
-        store_id INTEGER REFERENCES stores(id),
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        store_id INTEGER REFERENCES stores(id) ON DELETE CASCADE,
         rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+        comment TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(user_id, store_id)
       )
     `);
+
+    // Create indexes for better performance
+    await query('CREATE INDEX IF NOT EXISTS idx_ratings_user_id ON ratings(user_id)');
+    await query('CREATE INDEX IF NOT EXISTS idx_ratings_store_id ON ratings(store_id)');
+    await query('CREATE INDEX IF NOT EXISTS idx_stores_owner_id ON stores(owner_id)');
 
     console.log('Database tables initialized');
   } catch (error) {
@@ -50,11 +59,17 @@ const initializeDatabase = async () => {
 };
 
 const startServer = async () => {
-  await initializeDatabase();
-  
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+  try {
+    await initializeDatabase();
+    
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
 };
 
 startServer();
